@@ -72,7 +72,11 @@ class GrafanaAPIClient extends EventEmitter {
             waitTime += waitTime/2;
             this.ws = null;
             setTimeout(() => this.connect(),waitTime*1000);
-            console.error(err);
+            if (this.listeners('error').length < 1) {
+                throw err;
+            }else {
+                this.emit('error', err);
+            }
         });
     }
     /**
