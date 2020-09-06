@@ -2,7 +2,7 @@ require('./Logger')('DEBUG');
 const WebSocket = require('ws');
 const { escape, unescape } = require('querystring');
 const EventEmitter = require('events').EventEmitter;
-
+let waitTime = 3;
 
 /**
  * An API client to interface with Grafana API made by AlekEagle
@@ -68,13 +68,23 @@ class GrafanaAPIClient extends EventEmitter {
                 }
             })
         });
+        this.ws.on('error', err => {
+            waitTime += waitTime/2;
+            this.ws = null;
+            setTimeout(() => this.connect(),waitTime*1000);
+            console.error(err);
+        });
     }
     /**
      * Disconnects from the Grafana API cleanly
+     * @param {String} [reconnect=true] Wether or not the socket should reconnect to the api;
      */
-    disconnect() {
+    disconnect(reconnect) {
         this.ws.close(1000);
         this.ws = null;
+        if(!reconnect) {
+            setTimeout(() => this.connect(),waitTime*1000);
+        } 
     }
     /**
      * Sends an Error to the API
