@@ -1,10 +1,10 @@
 let GrafanaAPIClient = require('..');
-const grafana = new GrafanaAPIClient.Client("ZGFkYm90OjYwTHUkUFZJJCpsQGNHMzZacDF1QWVCUmQ=", 1, 2, 'ws://localhost:8080/connect');
+const grafana = new GrafanaAPIClient.Client("ZGFkYm90OjYwTHUkUFZJJCpsQGNHMzZacDF1QWVCUmQ=", 0, 1, 'ws://localhost:8080/connect');
 
 let array = [];
 
-grafana.on('allReady', () => {
-    let i = 0;
+grafana.on('clusterStatusUpdate', connected => {
+    /* let i = 0;
     function cheese() {
         if (i === grafana.clusterID) {
             array.push([[i, `lol${i}`]]);
@@ -29,7 +29,8 @@ JSON.stringify(Array.from(map.entries()));`
 
         });
     }
-    cheese();
+    cheese(); */
+    if(connected) grafana.sendError(new Error('lol'));
 });
 
 grafana.connect();

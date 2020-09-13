@@ -23,7 +23,7 @@ declare namespace GrafanaAPIClient {
         ): T;
         (
             event: 'error',
-            listener: (err: error) => void
+            listener: (err: Error) => void
         ): T;
     }
 
@@ -48,7 +48,7 @@ declare namespace GrafanaAPIClient {
         );
         connect(): void;
         disconnect(reconnect?: boolean): void;
-        sendError(err: string | error): void;
+        sendError(err: string | Error): void;
         sendLog(log: string): void;
         sendStats(
             guildCount: number,

@@ -179,7 +179,7 @@ class GrafanaAPIClient extends EventEmitter {
     }
     /**
      * Disconnects from the Grafana API cleanly
-     * @param {String?} [reconnect=true] Wether or not the socket should reconnect to the api;
+     * @param {Boolean?} [reconnect=true] Wether or not the socket should reconnect to the api;
      */
     disconnect(reconnect) {
         this.ws.close(1000);
@@ -191,17 +191,34 @@ class GrafanaAPIClient extends EventEmitter {
      * @param {String|Error} err The string of the error
      */
     sendError(err) {
-        if (!this.ws || this.ws.readyState !== this.ws.OPEN) throw new Error('API isn\'t connected');
-        if (!err) throw new Error('err argument is required')
-        this.ws.send(JSON.stringify({ op: 6, d: err }));
+        return new Promise((resolve, reject) => {
+            if (!this.ws || this.ws.readyState !== this.ws.OPEN) reject(new Error('API isn\'t connected'));
+            if (!err) reject(new Error('err argument is required'));
+            this.ws.send(JSON.stringify({ op: 6, d: typeof err === 'string' ? err : require('util').inspect(err) }), wsError => {
+                if (wsError) {
+                    reject(wsError);
+                }else {
+                    resolve();
+                }
+            });
+        });
     }
     /**
      * Sends a Log to the API
      * @param {String} log The string of the log
      */
     sendLog(log) {
-        if (!this.ws || this.ws.readyState !== this.ws.OPEN) throw new Error('API isn\'t connected');
-        this.ws.send(JSON.stringify({ op: 5, d: log }));
+        return new Promise((resolve, reject) => {
+            if (!this.ws || this.ws.readyState !== this.ws.OPEN) reject(new Error('API isn\'t connected'));
+            if (!err) reject(new Error('err argument is required'));
+            this.ws.send(JSON.stringify({ op: 6, d: typeof log === 'string' ? log : require('util').inspect(log) }), wsError => {
+                if (wsError) {
+                    reject(wsError);
+                }else {
+                    resolve();
+                }
+            });
+        });
     }
     /**
      * Sends general stats to the API
@@ -211,8 +228,18 @@ class GrafanaAPIClient extends EventEmitter {
      * @param {Number} ping The average ping of all shards on this cluster
      */
     sendStats(guildCount, cpuUsage, memUsage, ping) {
-        if (!this.ws || this.ws.readyState !== this.ws.OPEN) throw new Error('API isn\'t connected');
-        this.ws.send(JSON.stringify({ op: 3, d: { guildCount, cpuUsage, memUsage, ping } }));
+        return new Promise((resolve, reject) => {
+            if (guildCount === undefined || cpuUsage === undefined || memUsage === undefined || ping === undefined) reject("all arguments required");
+            if (typeof guildCount !== 'number' || typeof cpuUsage !== 'number' || typeof memUsage !== 'number' || typeof ping !== 'number') reject('all arguements must me numbers');
+            if (!this.ws || this.ws.readyState !== this.ws.OPEN) reject(new Error('API isn\'t connected'));
+            this.ws.send(JSON.stringify({ op: 3, d: { guildCount, cpuUsage, memUsage, ping } }), wsError => {
+                if (wsError) {
+                    reject(wsError);
+                }else {
+                    resolve();
+                }
+            });
+        });
     }
     /**
      * Evaluates a string on another cluster
