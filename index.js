@@ -133,15 +133,17 @@ class GrafanaAPIClient extends EventEmitter {
                         }
                         break;
                     case 9:
-                        if (this.__remoteEvalUIDs.includes(json.d.uid)) return;
-                        this.__remoteEvalCallback = (err, value) => {
+                        this[`__remoteEvalCallback${json.d.uid}`] = (err, value) => {
                             if (err) {
-                                this.ws.send(JSON.stringify({ op: 9, d: { id: json.d.id, uid: json.d.uid, data: err } }));
+                                this.ws.send(JSON.stringify({ op: 10, d: { id: json.d.id, uid: json.d.uid, data: err } }));
                             } else {
-                                this.ws.send(JSON.stringify({ op: 9, d: { id: json.d.id, uid: json.d.uid, data: value } }));
+                                this.ws.send(JSON.stringify({ op: 10, d: { id: json.d.id, uid: json.d.uid, data: value } }));
                             }
+                            delete this[`__remoteEvalCallback${json.d.uid}`];
                         }
-                        this.emit('remoteEval', json.d.data, this.__remoteEvalCallback);
+                        this.emit('remoteEval', json.d.data, this[`__remoteEvalCallback${json.d.uid}`]);
+                        break;
+                        case 10:
                         break;
                     default:
                         console.error(`Unknown Opcode ${json.op}! Closing and reconnecting!`);
@@ -210,7 +212,7 @@ class GrafanaAPIClient extends EventEmitter {
     sendLog(log) {
         return new Promise((resolve, reject) => {
             if (!this.ws || this.ws.readyState !== this.ws.OPEN) reject(new Error('API isn\'t connected'));
-            if (!err) reject(new Error('err argument is required'));
+            if (!log) reject(new Error('log argument is required'));
             this.ws.send(JSON.stringify({ op: 6, d: typeof log === 'string' ? log : require('util').inspect(log) }), wsError => {
                 if (wsError) {
                     reject(wsError);
@@ -255,7 +257,7 @@ class GrafanaAPIClient extends EventEmitter {
             this.ws.send(JSON.stringify({ op: 9, d: { id: clusterID, data, uid } }));
             this.__getRemoteEvalData = (dat) => {
                 let json = JSON.parse(dat);
-                if (json.op === 9 && json.d.id === clusterID && json.d.uid === uid) {
+                if (json.op === 10 && json.d.id === clusterID && json.d.uid === uid) {
                     delete this.__remoteEvalUIDs[this.__remoteEvalUIDs.indexOf(uid)];
                     this.ws.off('message', this.__getRemoteEvalData);
                     resolve(json.d.data);

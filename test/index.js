@@ -3,7 +3,6 @@ const grafana = new GrafanaAPIClient.Client("ZGFkYm90OjYwTHUkUFZJJCpsQGNHMzZacDF
 
 
 grafana.on('remoteEval', (data, callback) => {
-    console.log('e');
     let evaluation;
     try {
         evaluation = eval(data);
