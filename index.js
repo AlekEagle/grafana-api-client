@@ -143,7 +143,7 @@ class GrafanaAPIClient extends EventEmitter {
                         }
                         this.emit('remoteEval', json.d.data, this[`__remoteEvalCallback${json.d.uid}`]);
                         break;
-                        case 10:
+                    case 10:
                         break;
                     default:
                         console.error(`Unknown Opcode ${json.op}! Closing and reconnecting!`);
@@ -199,7 +199,7 @@ class GrafanaAPIClient extends EventEmitter {
             this.ws.send(JSON.stringify({ op: 6, d: typeof err === 'string' ? err : require('util').inspect(err) }), wsError => {
                 if (wsError) {
                     reject(wsError);
-                }else {
+                } else {
                     resolve();
                 }
             });
@@ -213,10 +213,10 @@ class GrafanaAPIClient extends EventEmitter {
         return new Promise((resolve, reject) => {
             if (!this.ws || this.ws.readyState !== this.ws.OPEN) reject(new Error('API isn\'t connected'));
             if (!log) reject(new Error('log argument is required'));
-            this.ws.send(JSON.stringify({ op: 6, d: typeof log === 'string' ? log : require('util').inspect(log) }), wsError => {
+            this.ws.send(JSON.stringify({ op: 5, d: typeof log === 'string' ? log : require('util').inspect(log) }), wsError => {
                 if (wsError) {
                     reject(wsError);
-                }else {
+                } else {
                     resolve();
                 }
             });
@@ -237,7 +237,7 @@ class GrafanaAPIClient extends EventEmitter {
             this.ws.send(JSON.stringify({ op: 3, d: { guildCount, cpuUsage, memUsage, ping } }), wsError => {
                 if (wsError) {
                     reject(wsError);
-                }else {
+                } else {
                     resolve();
                 }
             });
